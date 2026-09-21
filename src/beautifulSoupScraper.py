@@ -1,6 +1,6 @@
 from bs4 import BeautifulSoup
 import requests
-from iWebScraper import IWebScraper
+from src.iWebScraper import IWebScraper
 import pandas as pd
 
 class BeautifulSoupScraper(IWebScraper):
@@ -41,9 +41,5 @@ class BeautifulSoupScraper(IWebScraper):
             "Description": descriptions
         })
 
-
-test = BeautifulSoupScraper("https://books.toscrape.com/catalogue/category/books/fiction_10/index.html")
-test2 = BeautifulSoupScraper("https://books.toscrape.com/catalogue/category/books/nonfiction_13/index.html")
-print(pd.concat([test.scrape(), test2.scrape()], ignore_index=True))
         
     
