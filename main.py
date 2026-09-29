@@ -1,5 +1,6 @@
 from src.beautifulSoupScraper import BeautifulSoupScraper
 from src.dataCleaner import DataCleaner
+from src.dataAnalyser import DataAnalyser
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
@@ -15,6 +16,10 @@ def main():
     cleaner = DataCleaner(data)
     cleaner.clean()
 
+    analyzer = DataAnalyser(cleaner.data)
+    analyzer.analyze()
+
+"""
     train_data: pd.DataFrame
     test_data: pd.DataFrame
 
@@ -61,6 +66,7 @@ def main():
     print("CONFUSION MATRIX")
     print("=" * 40)
     print(confusion_matrix(y_test, y_pred))
+"""
 
 
 if __name__ == "__main__":

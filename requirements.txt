@@ -3,3 +3,6 @@ requests
 beautifulsoup4
 langdetect
 scikit-learn
+opencv-python<5.0
+pillow
+numpy

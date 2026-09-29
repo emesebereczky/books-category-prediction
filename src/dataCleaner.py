@@ -14,9 +14,10 @@ class DataCleaner():
         self.clean_text()
         self.remove_non_english()
         self.remove_invalid_url()
+
+        self.data = self.data.reset_index(drop=True)
+
         print(f"Final number of rows: {len(self.data)}")
-        self.analyze_categories()
-        self.analyze_structure()
         return self.data
 
     def remove_missing_values(self):
@@ -86,14 +87,6 @@ class DataCleaner():
             return detect(text) == 'en'
         except LangDetectException:
             return False
-
-    def analyze_categories(self):
-        print("Categories:")
-        print(self.data["Category"].value_counts())
-
-    def analyze_structure(self):
-        print("\nData structure:")
-        print(self.data.info())
 
     def _is_valid_url(self, url):
         if not isinstance(url, str) or not url.startswith('http'):
