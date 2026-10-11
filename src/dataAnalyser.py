@@ -11,17 +11,14 @@ from sklearn.feature_extraction.text import (
     CountVectorizer,
     TfidfVectorizer,
 )
+from src.imageFeatureExtractor import ImageFeatureExtractor
 
 
 class DataAnalyser:
 
     def __init__(self, data: pd.DataFrame):
         self.data = data
-        self.face_cascade = cv2.CascadeClassifier(
-            "./haarcascade_frontalface_default.xml"
-        )
-        self.hog = cv2.HOGDescriptor()
-        self.hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
+        self.image_extractor = ImageFeatureExtractor()
 
     def analyze(self):
         print("Data Analysis:")
@@ -101,70 +98,21 @@ class DataAnalyser:
             )
 
     def _calculate_colorfulness(self, image_rgb: np.ndarray) -> float:
-        """Hasler és Süsstrunk metrika szerinti színesség."""
-        R = image_rgb[:, :, 0].astype("float")
-        G = image_rgb[:, :, 1].astype("float")
-        B = image_rgb[:, :, 2].astype("float")
-
-        rg = np.absolute(R - G)
-        yb = np.absolute(0.5 * (R + G) - B)
-
-        std_root = np.sqrt((np.std(rg) ** 2) + (np.std(yb) ** 2))
-        mean_root = np.sqrt((np.mean(rg) ** 2) + (np.mean(yb) ** 2))
-
-        return float(std_root + (0.3 * mean_root))
+        return self.image_extractor._calculate_colorfulness(image_rgb=image_rgb)
 
     def _analyze_image(self, image_url: str) -> dict:
-        default_res = {
-            "brightness": 0.0,
-            "colorfulness": 0.0,
-            "face_count": 0,
-            "person_count": 0,
-        }
-        try:
-            resp = requests.get(image_url, timeout=10)
-            if resp.status_code != 200:
-                return default_res
-
-            pil_image = Image.open(BytesIO(resp.content)).convert("RGB")
-            image_rgb = np.array(pil_image)
-
-            image_bgr = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR)
-            gray = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2GRAY)
-
-            brightness = float(np.mean(gray))
-            colorfulness = self._calculate_colorfulness(image_rgb)
-
-            faces = self.face_cascade.detectMultiScale(
-                gray, scaleFactor=1.1, minNeighbors=4, minSize=(20, 20)
-            )
-            face_count = len(faces)
-
-            boxes, _ = self.hog.detectMultiScale(
-                image_bgr, winStride=(4, 4), padding=(8, 8), scale=1.05
-            )
-            person_count = len(boxes)
-
-            return {
-                "brightness": round(brightness, 2),
-                "colorfulness": round(colorfulness, 2),
-                "face_count": face_count,
-                "person_count": person_count,
-            }
-        except Exception as e:
-            print(f"Error occurred while analyzing image: {e}")
-            return default_res
+        return self.image_extractor.extract(image_url=image_url)
 
     def analyze_images(self) -> None:
         print("\nAnalyzing Images (Downloading and Feature Extraction)...")
         image_results = self.data["Image"].apply(self._analyze_image)
 
         image_features_df = pd.DataFrame(image_results.tolist())
-        self.data = pd.concat([self.data, image_features_df], axis=1)
+        summary_data = pd.concat([self.data, image_features_df], axis=1)
 
         print("\nImage Features Summary by Category:")
         summary = (
-            self.data.groupby("Category")[
+            summary_data.groupby("Category")[
                 ["brightness", "colorfulness", "face_count", "person_count"]
             ]
             .agg(["mean", "std", "median"])
