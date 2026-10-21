@@ -40,11 +40,9 @@ class DataAnalyser:
             for word, count in top_words.items():
                 print(f"{word}: {count}")
 
-        # Bigrammok (n=2) és Trigrammok (n=3) elemzése
         self.analyze_ngrams(n=2, top_n=10)
         self.analyze_ngrams(n=3, top_n=10)
 
-        # TF-IDF elemzés
         self.analyze_tfidf(top_n=10)
 
         self.analyze_title_and_description_length()
